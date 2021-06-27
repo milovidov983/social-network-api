@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace WebApi.Infrastructure.Exceptions {
+namespace WebApi.Core.Exceptions {
 	public class InputValidationException : Exception {
 		public readonly ImmutableDictionary<string, string[]> Errors;
 

@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WebApi.Infrastructure.Exceptions;
+using WebApi.Core.Exceptions;
 
 namespace WebApi.Infrastructure.Behaviours {
 	public class ValidatorPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> {

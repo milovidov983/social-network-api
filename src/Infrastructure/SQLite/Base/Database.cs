@@ -15,14 +15,18 @@ namespace WebApi.Infrastructure.SQLite.Base {
 		public readonly Table<Users> UsersTable = TableExtentions.Create<Users>(Users.TableName);
 		public readonly Table<Subscriptions> SubscriptionsTable = TableExtentions.Create<Subscriptions>(Subscriptions.TableName);
 
-		public Database() {
+		//private readonly string dbFile = "data\\sqlitedb.db";
+		private readonly string databasePath;
+
+		public Database(string databasePath) {
+			this.databasePath = databasePath ?? throw new ArgumentNullException(nameof(databasePath));
+
 			ActiveConnection = GetConnection();
 		}
 
 
-		protected readonly string dbFile = "data\\sqlitedb.db";
 		public IDbConnection GetConnection() {
-			return new SQLiteConnection($"Data Source={dbFile}");
+			return new SQLiteConnection($"Data Source={databasePath}");
 		}
 
 		public void Dispose() {

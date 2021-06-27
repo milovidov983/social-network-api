@@ -14,20 +14,25 @@ using System.Text.Json;
 using WebApi.Core.Exceptions;
 using WebApi.Core.Interfaces;
 using WebApi.Infrastructure.Behaviours;
-using WebApi.Infrastructure.Exceptions;
 using WebApi.Infrastructure.SQLite.Base;
 
 
 namespace WebApi {
 	public class Startup {
-		public Startup(IConfiguration configuration) {
-			Configuration = configuration;
+		public Startup(IWebHostEnvironment env) {
+			var builder = new ConfigurationBuilder()
+				.SetBasePath(env.ContentRootPath)
+				.AddJsonFile("appsettings.json", true, true)
+				.AddJsonFile($"appsettings.{env.EnvironmentName}.json", true);
+
+			Configuration = builder.Build();
 		}
 
 		public IConfiguration Configuration { get; }
 
 		
 		public void ConfigureServices(IServiceCollection services) {
+			services.Configure<Settings>(Configuration);
 			services.AddControllers();
 			services.AddSwaggerGen(c => {
 				c.SwaggerDoc("v1", new OpenApiInfo { Title = "WebApi", Version = "v1" });
@@ -35,6 +40,7 @@ namespace WebApi {
 
 			services.AddMediatR(typeof(Startup));
 			services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidatorPipelineBehavior<,>));
+            services.AddSingleton<IDatabaseFactory, DatabaseFactory>();
             services.AddSingleton<IUsersRepository, UsersRepository>();
 
 			services
@@ -87,7 +93,7 @@ namespace WebApi {
 					Extensions =
 					{
 							["trace"] = Activity.Current?.Id ?? context?.TraceIdentifier
-						}
+					}
 				};
 
 				switch (exception) {

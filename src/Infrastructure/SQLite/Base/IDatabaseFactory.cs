@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace WebApi {
-	public class Settings {
-		public string DatabasePath { get; set; }
+namespace WebApi.Infrastructure.SQLite.Base {
+	public interface IDatabaseFactory {
+		Database Create();
 	}
 }

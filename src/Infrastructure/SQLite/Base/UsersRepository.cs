@@ -10,6 +10,13 @@ using WebApi.Infrastructure.SQLite.Tables;
 
 namespace WebApi.Infrastructure.SQLite.Base {
 	public class UsersRepository : IUsersRepository {
+		private readonly IDatabaseFactory databaseFactory;
+
+		public UsersRepository(IDatabaseFactory databaseFactory) 
+			=> this.databaseFactory = databaseFactory;
+		
+
+
 		public async Task<long?> CreateUser(User user) {
 			var userIdOrNull = await ExecuteCommitedDbQuery(async db => {
 				var sql = db.UsersTable
@@ -63,7 +70,7 @@ namespace WebApi.Infrastructure.SQLite.Base {
 		}
 
 		public async Task<UserView[]> GetTopUsers(long limit) {
-			var db = new Database();
+			var db = databaseFactory.Create();
 			db.ActiveConnection.Open();
 
 			var sql = db.Query(x => $@"
@@ -95,7 +102,7 @@ namespace WebApi.Infrastructure.SQLite.Base {
 		}
 
 		public async Task<bool> IsUserExists(long userId) {
-			var db = new Database();
+			var db = databaseFactory.Create();
 			db.ActiveConnection.Open();
 
 			var sql = db.UsersTable.Query(x => $@"
@@ -111,10 +118,10 @@ namespace WebApi.Infrastructure.SQLite.Base {
 		}
 
 
-		private static async Task<TResult> ExecuteCommitedDbQuery<TResult>(Func<Database, Task<TResult>> func) {
+		private async Task<TResult> ExecuteCommitedDbQuery<TResult>(Func<Database, Task<TResult>> func) {
 			IDbTransaction tx = null;
 			try {
-				var db = new Database();
+				var db = databaseFactory.Create();
 				db.ActiveConnection.Open();
 				tx = db.ActiveConnection.BeginTransaction();
 
