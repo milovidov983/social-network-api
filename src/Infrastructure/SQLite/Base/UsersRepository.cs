@@ -62,19 +62,19 @@ namespace WebApi.Infrastructure.SQLite.Base {
 			return rowsAffected > 0;
 		}
 
-		public async Task<UserWithSubscribers[]> GetTopUsers(long limit) {
+		public async Task<UserView[]> GetTopUsers(long limit) {
 			var db = new Database();
 			db.ActiveConnection.Open();
 
 			var sql = db.Query(x => $@"
 				SELECT {x.UsersTable.Select()}, 
-						{nameof(UserWithSubscribers.SubscribersCount)}
+						{nameof(UserView.SubscribersCount)}
 				FROM (SELECT {x.SubscriptionsTable.FieldShort(f => f.SubscribedToUserId)}, 
-							COUNT({x.SubscriptionsTable.FieldShort(f => f.UserId)}) as {nameof(UserWithSubscribers.SubscribersCount)}
+							COUNT({x.SubscriptionsTable.FieldShort(f => f.UserId)}) as {nameof(UserView.SubscribersCount)}
 						FROM {x.SubscriptionsTable.Name}
 						GROUP BY {x.SubscriptionsTable.FieldShort(f => f.SubscribedToUserId)}
 						UNION 
-						SELECT {x.UsersTable.FieldShort(f => f.Id)}, 0 as {nameof(UserWithSubscribers.SubscribersCount)}
+						SELECT {x.UsersTable.FieldShort(f => f.Id)}, 0 as {nameof(UserView.SubscribersCount)}
 						FROM {x.UsersTable.Name}
 						WHERE NOT EXISTS(
 								SELECT 1
@@ -85,16 +85,16 @@ namespace WebApi.Infrastructure.SQLite.Base {
 					)
 				JOIN {x.UsersTable.Name}
 				ON {x.UsersTable.FieldShort(f => f.Id)} = {x.SubscriptionsTable.FieldShort(f => f.SubscribedToUserId)}
-				ORDER BY {nameof(UserWithSubscribers.SubscribersCount)} DESC, {x.UsersTable.FieldShort(f=>f.Name)}
+				ORDER BY {nameof(UserView.SubscribersCount)} DESC, {x.UsersTable.FieldShort(f=>f.Name)}
 				");
 
-			var result = await db.ActiveConnection.QueryAsync<UserWithSubscribers>(sql, new { limit });
+			var result = await db.ActiveConnection.QueryAsync<UserView>(sql, new { limit });
 
 
 			return result.ToArray();
 		}
 
-		public async Task<bool> IsUserExsists(long userId) {
+		public async Task<bool> IsUserExists(long userId) {
 			var db = new Database();
 			db.ActiveConnection.Open();
 

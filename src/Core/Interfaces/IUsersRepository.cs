@@ -5,7 +5,7 @@ namespace WebApi.Core.Interfaces {
 	public interface IUsersRepository {
 		Task<long?> CreateUser(User user);
 		Task<bool> MakeSubscription(Subscription subscription);
-		Task<UserWithSubscribers[]> GetTopUsers(long limit);
-		Task<bool> IsUserExsists(long userId);
+		Task<UserView[]> GetTopUsers(long limit);
+		Task<bool> IsUserExists(long userId);
 	}
 }

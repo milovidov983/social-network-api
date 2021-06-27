@@ -1,12 +1,11 @@
 ﻿using FluentValidation;
 using MediatR;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using WebApi.Core.Exceptions;
-using WebApi.Core.Models;
 using WebApi.Core.Interfaces;
+using WebApi.Core.Models;
 
 namespace WebApi.Core.Commands {
 	public record MakeSubscriptionCommand(long UserId, long ToUserId) : IRequest<bool>;
@@ -21,8 +20,14 @@ namespace WebApi.Core.Commands {
 
 
 		public async Task<bool> Handle(MakeSubscriptionCommand request, CancellationToken cancellationToken) {
-			bool isTargetUserExists = await usersRepository.IsUserExsists(request.UserId);
-			bool isToSubscribeUserExists = await usersRepository.IsUserExsists(request.ToUserId);
+			var isTargetUserExistsTask = usersRepository.IsUserExists(request.UserId);
+			var isToSubscribeUserExistsTask = usersRepository.IsUserExists(request.ToUserId);
+
+			await Task.WhenAll(isTargetUserExistsTask, isToSubscribeUserExistsTask);
+
+			bool isTargetUserExists = isTargetUserExistsTask.Result;
+			bool isToSubscribeUserExists = isToSubscribeUserExistsTask.Result;
+
 
 			if (!isTargetUserExists) {
 				throw new DomainLayerExceptionNotFound(

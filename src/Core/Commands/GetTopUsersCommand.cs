@@ -1,17 +1,15 @@
 ﻿using FluentValidation;
 using MediatR;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using WebApi.Core.Exceptions;
-using WebApi.Core.Models;
 using WebApi.Core.Interfaces;
+using WebApi.Core.Models;
 
 namespace WebApi.Core.Commands {
-	public record GetTopUsersCommand(long limit) : IRequest<UserWithSubscribers[]>;
+	public record GetTopUsersCommand(long limit) : IRequest<UserView[]>;
 
-	public class GetTopUsersCommandHandler : IRequestHandler<GetTopUsersCommand, UserWithSubscribers[]> {
+	public class GetTopUsersCommandHandler : IRequestHandler<GetTopUsersCommand, UserView[]> {
 
 		private readonly IUsersRepository usersRepository;
 
@@ -20,7 +18,7 @@ namespace WebApi.Core.Commands {
 				?? throw new ArgumentNullException(nameof(usersRepository));
 
 
-		public async Task<UserWithSubscribers[]> Handle(GetTopUsersCommand request, CancellationToken cancellationToken) {
+		public async Task<UserView[]> Handle(GetTopUsersCommand request, CancellationToken cancellationToken) {
 			var usersWithSubscriptions = await usersRepository.GetTopUsers(request.limit);
 			return usersWithSubscriptions;
 		}

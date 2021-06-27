@@ -20,7 +20,7 @@ namespace WebApi.Infrastructure.SQLite.Base {
 		}
 
 
-		private readonly string dbFile = "data\\sqlitedb.db";
+		protected readonly string dbFile = "data\\sqlitedb.db";
 		public IDbConnection GetConnection() {
 			return new SQLiteConnection($"Data Source={dbFile}");
 		}

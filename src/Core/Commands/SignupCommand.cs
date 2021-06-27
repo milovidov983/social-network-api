@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WebApi.Core.Exceptions;
 using WebApi.Core.Models;
 using WebApi.Core.Interfaces;
+using System.Text.RegularExpressions;
 
 namespace WebApi.Core.Commands {
 	public record SignupCommand(string UserName) : IRequest<long>;
@@ -36,11 +37,20 @@ namespace WebApi.Core.Commands {
 	}
 
 	public class SignupCommandValidation : AbstractValidator<SignupCommand> {
+		public const int NAME_MAX_LEN = 64;
+
 		public SignupCommandValidation() {
 			RuleFor(x => x.UserName)
+				.NotNull()
 				.NotEmpty()
-				.MaximumLength(64)
-				.Matches("^[\\w ]+$");
+				.MaximumLength(NAME_MAX_LEN)
+				.Must((_, name) =>  name != null
+						&& !name.StartsWith(" ")
+						&& !name.EndsWith(" ")
+						&& !Regex.IsMatch(name, "\\d")
+						&& Regex.IsMatch(name, "^[\\w ]+$")
+
+				);
 		}
 	}
 }
