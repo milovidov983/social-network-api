@@ -43,14 +43,15 @@ namespace WebApi.Core.Commands {
 			RuleFor(x => x.UserName)
 				.NotNull()
 				.NotEmpty()
-				.MaximumLength(NAME_MAX_LEN)
+				.MaximumLength(NAME_MAX_LEN);
+
+			RuleFor(x => x.UserName)
 				.Must((_, name) =>  name != null
 						&& !name.StartsWith(" ")
 						&& !name.EndsWith(" ")
 						&& !Regex.IsMatch(name, "\\d")
 						&& Regex.IsMatch(name, "^[\\w ]+$")
-
-				);
+				).WithMessage("Invalid characters in the user name"); ;
 		}
 	}
 }

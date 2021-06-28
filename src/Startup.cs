@@ -14,6 +14,7 @@ using System.Text.Json;
 using WebApi.Core.Exceptions;
 using WebApi.Core.Interfaces;
 using WebApi.Infrastructure.Behaviours;
+using WebApi.Infrastructure.Filters;
 using WebApi.Infrastructure.SQLite.Base;
 
 
@@ -44,7 +45,7 @@ namespace WebApi {
             services.AddSingleton<IUsersRepository, UsersRepository>();
 
 			services
-				.AddMvc()
+				.AddMvc(o => o.Filters.Add<HttpGlobalExceptionFilter>())
 				.AddFluentValidation(s => s.RegisterValidatorsFromAssemblyContaining<Startup>());
 
             services.Configure<ApiBehaviorOptions>(options => {
@@ -66,66 +67,9 @@ namespace WebApi {
 			app.UseHttpsRedirection();
 			app.UseRouting();
 
-			app.UseExceptionHandler(errorApp => {
-				errorApp.Run(ExceptionHandler());
-			});
-
 			app.UseEndpoints(endpoints => {
 				endpoints.MapControllers();
 			});
-		}
-
-		private static RequestDelegate ExceptionHandler() {
-			return async context => {
-				var errorFeature = context.Features.Get<IExceptionHandlerFeature>();
-				var exception = errorFeature.Error;
-
-				// https://tools.ietf.org/html/rfc7807#section-3.1
-				var problemDetails = new ProblemDetails {
-					Type = $"{exception.GetType().Name}",
-					Title = "An unexpected error occurred!",
-					Detail = "Something went wrong",
-					Instance = errorFeature switch {
-						ExceptionHandlerFeature e => e.Path,
-						_ => "unknown"
-					},
-					Status = StatusCodes.Status400BadRequest,
-					Extensions =
-					{
-							["trace"] = Activity.Current?.Id ?? context?.TraceIdentifier
-					}
-				};
-
-				switch (exception) {
-					case InputValidationException specialException:
-						problemDetails.Status = StatusCodes.Status403Forbidden;
-						problemDetails.Title = "One or more validation errors occurred";
-						problemDetails.Detail = "The request contains invalid parameters. " +
-												"More information can be found in the errors.";
-						problemDetails.Extensions["errors"] = specialException.Errors;
-						break;
-					case DomainLayerExceptionNotFound specialException:
-						problemDetails.Status = StatusCodes.Status404NotFound;
-						problemDetails.Title = "The requested object was not found";
-						problemDetails.Detail = "The request contains an object that could not be found. " +
-												"More information can be found in the errors.";
-						problemDetails.Extensions["errors"] = specialException.Errors;
-						break;
-					case DomainLayerException specialException:
-						problemDetails.Status = StatusCodes.Status400BadRequest;
-						problemDetails.Title = "A domain level error occurred";
-						problemDetails.Detail = "More information can be found in the errors.";
-						problemDetails.Extensions["errors"] = specialException.Errors;
-						break;
-				}
-
-				context.Response.ContentType = "application/problem+json";
-				context.Response.StatusCode = problemDetails.Status.Value;
-				context.Response.GetTypedHeaders().CacheControl = new Microsoft.Net.Http.Headers.CacheControlHeaderValue() {
-					NoCache = true,
-				};
-				await JsonSerializer.SerializeAsync(context.Response.Body, problemDetails);
-			};
 		}
 	}
 }
